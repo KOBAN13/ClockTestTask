@@ -11,7 +11,8 @@ public class SyncClockTime : IInitializable
 {
     public string ClockTime { get; private set; }
     private const string URL = "https://yandex.com/time/sync.json?geo=213";
-    public Clock Clock { get; private set; }
+    public ClockDigital ClockDigital { get; private set; }
+    public ClockAnalog ClockAnalog { get; private set; }
     
     public void Initialize()
     {
@@ -31,15 +32,29 @@ public class SyncClockTime : IInitializable
             else
             {
                 var jsonResponse = webRequest.downloadHandler.text;
-                SetClock(jsonResponse);
+                SetClockDigital(jsonResponse);
+                SetClockAnalog(jsonResponse);
             }
         }
     }
 
-    private void SetClock(string jsonResponse)
+    private string[] GetFormattedStringTime(string jsonResponse)
     {
-        var replace = Regex.Replace(jsonResponse, @"[""\""{""}""]", "").Split(',').FirstOrDefault(text => text.StartsWith("time"))?.Split(':');
+        return Regex.Replace(jsonResponse, @"[""\""{""}""]", "")
+            .Split(',')
+            .FirstOrDefault(text => text.StartsWith("time"))?
+            .Split(':');
+    }
+
+    private void SetClockDigital(string jsonResponse)
+    {
+        var replace = GetFormattedStringTime(jsonResponse);
         var dateTime = DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(replace[1])).UtcDateTime.AddHours(3.0);
-        Clock = new Clock(dateTime.Second + dateTime.Minute * 60 + dateTime.Hour * 3600);
+        ClockDigital = new ClockDigital(dateTime.Second + dateTime.Minute * 60 + dateTime.Hour * 3600);
+    }
+
+    private void SetClockAnalog(string jsonResponse)
+    {
+        ClockAnalog = new ClockAnalog();
     }
 }

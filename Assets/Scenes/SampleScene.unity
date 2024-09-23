@@ -1242,6 +1242,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   <Time>k__BackingField: {fileID: 311061805}
+  <Hours>k__BackingField: {fileID: 693109910}
+  <Minutes>k__BackingField: {fileID: 2002627956}
+  <Seconds>k__BackingField: {fileID: 890932252}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
