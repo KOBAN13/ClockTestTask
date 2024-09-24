@@ -21,17 +21,18 @@ namespace Client
         
         public void Tick()
         {
-            if(_clockController.ClockDigital == null || _clockController.ClockAnalog == null) return;
+            if(_clockController.ClockDigital == null || _clockController.ClockAnalog == null || _clockController.IsStopTimer) return;
             
             _clockController.ClockDigital.Update(Time.deltaTime);
-            _clockModel.SetTimeString(FormatTime(_clockController.ClockDigital.Time));
-            _clockController.ClockAnalog.Update(_hours, _minutes, _seconds);
+            _clockController.ClockAnalog.UpdateTime(Time.deltaTime);
+            _clockModel.SetTimeDigitalString(FormatTime(_clockController.ClockDigital.Time));
+            _clockController.ClockAnalog.UpdateAngle();
             _clockModel.SetHoursAngle(_clockController.ClockAnalog.HourAngle);
             _clockModel.SetMinutesAngle(_clockController.ClockAnalog.MinuteAngle);
             _clockModel.SetSecondsAngle(_clockController.ClockAnalog.SecondAngle);
         }
         
-        public string FormatTime(float time)
+        private string FormatTime(float time)
         {
             _hours = Mathf.FloorToInt(time / 3600);
             _minutes = Mathf.FloorToInt((time % 3600) / 60);

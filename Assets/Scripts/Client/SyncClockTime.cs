@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Clear;
 using Client;
 using Cysharp.Threading.Tasks;
 using UniRx;
@@ -13,14 +14,17 @@ public class SyncClockTime : IInitializable, IDisposable
     private const string URL = "https://yandex.com/time/sync.json?geo=213";
     private IDisposable _disposable;
     private ClockController _clockController;
+    private readonly Dispose _dispose;
 
-    public SyncClockTime(ClockController clockController)
+    public SyncClockTime(ClockController clockController, Dispose dispose)
     {
         _clockController = clockController;
+        _dispose = dispose;
     }
 
     public void Initialize()
     {
+        _dispose.Add(this);
         GetTimeFromAPI();
         SubscribeTimer();
     }
@@ -39,7 +43,7 @@ public class SyncClockTime : IInitializable, IDisposable
             {
                 var jsonResponse = webRequest.downloadHandler.text;
                 SetClockDigital(jsonResponse);
-                SetClockAnalog();
+                SetClockAnalog(jsonResponse);
             }
         }
     }
@@ -59,9 +63,11 @@ public class SyncClockTime : IInitializable, IDisposable
         _clockController.SetDigitalClock(new ClockDigital(dateTime.Second + dateTime.Minute * 60 + dateTime.Hour * 3600));
     }
     
-    private void SetClockAnalog()
+    private void SetClockAnalog(string jsonResponse)
     {
-        _clockController.SetAnalogClock(new ClockAnalog());
+        var replace = GetFormattedStringTime(jsonResponse);
+        var dateTime = DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(replace[1])).UtcDateTime.AddHours(3.0);
+        _clockController.SetAnalogClock(new ClockAnalog(dateTime.Second + dateTime.Minute * 60 + dateTime.Hour * 3600));
     }
 
     private void SubscribeTimer()
@@ -72,7 +78,7 @@ public class SyncClockTime : IInitializable, IDisposable
 
     private void UnsubscribeTimer()
     {
-        _disposable.Dispose();
+        _disposable?.Dispose();
     }
 
     public void Dispose()

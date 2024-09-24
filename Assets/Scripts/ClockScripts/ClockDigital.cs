@@ -1,4 +1,5 @@
 ﻿using System;
+using Extensions;
 
 namespace Client
 {
@@ -9,6 +10,12 @@ namespace Client
 
         public ClockDigital(float time)
         {
+            Time = time;
+        }
+
+        public void SetTime(float time)
+        {
+            Preconditions.CheckValidateData(time);
             Time = time;
         }
 

@@ -6,19 +6,19 @@ namespace Ui
 {
     public class ClockModel
     {
-        public ReactiveProperty<string> TimeToUi { get; private set; } = new();
+        public ReactiveProperty<string> TimeToUiDigital { get; private set; } = new();
         public ReactiveProperty<float> Hours { get; private set; } = new();
         public ReactiveProperty<float> Minutes { get; private set; } = new();
         public ReactiveProperty<float> Seconds { get; private set; } = new();
         public ClockController ClockController { get; private set; }
         
-        private CompositeDisposable _compositeDisposable = new();
+        public CompositeDisposable CompositeDisposable { get; private set; }
         public ClockModel(ClockController clockController) => ClockController = clockController;
         
-        public void SetTimeString(string time)
+        public void SetTimeDigitalString(string time)
         {
             Preconditions.CheckNotNull(time);
-            TimeToUi.Value = time;
+            TimeToUiDigital.Value = time;
         }
         
         public void SetHoursAngle(float hours)
@@ -41,8 +41,8 @@ namespace Ui
 
         public void Dispose()
         {
-            _compositeDisposable.Clear();
-            _compositeDisposable.Dispose();
+            CompositeDisposable.Clear();
+            CompositeDisposable.Dispose();
         }
     }
 }

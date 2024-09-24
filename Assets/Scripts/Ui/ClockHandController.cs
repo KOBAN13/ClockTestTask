@@ -1,49 +1,40 @@
-﻿using UnityEngine;
+﻿using System;
+using Client;
+using UnityEngine;
 using UnityEngine.EventSystems;
+using Zenject;
 
 namespace Ui
 {
     public class ClockHandController : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHandler
     {
-        private bool isDragging = false;
-        private Vector3 initialPosition;
-        private float initialAngle;
+        private bool _isDragging = false;
+        public event Action<Transform> IsEndDrag;
 
         void IBeginDragHandler.OnBeginDrag(PointerEventData eventData)
         {
-            isDragging = true;
-            initialPosition = transform.position;
-            initialAngle = GetCurrentAngle();
+            _isDragging = true;
         }
 
         void IDragHandler.OnDrag(PointerEventData eventData)
         {
-            if (!isDragging) return;
+            if (!_isDragging) return;
             
             var direction = eventData.position - new Vector2(Screen.width / 2, Screen.height / 2);
             var angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
                 
-            transform.rotation = Quaternion.Euler(0, 0, angle);
+            transform.localRotation = Quaternion.Euler(0, 0, angle);
         }
 
         void IEndDragHandler.OnEndDrag(PointerEventData eventData)
         {
-            isDragging = false;
+            _isDragging = false;
             UpdateClockTime();
-        }
-
-        private float GetCurrentAngle()
-        {
-            return transform.rotation.eulerAngles.z;
         }
 
         private void UpdateClockTime()
         {
-            var angle = GetCurrentAngle();
-            var minutes = (angle + 360) % 360 / 6;
-            var hours = (angle + 360) % 360 / 30;
-
-            Debug.Log($"Часы: {Mathf.Floor(hours)}, Минуты: {Mathf.Floor(minutes)}");
+            IsEndDrag?.Invoke(transform);
         }
     }
 }
