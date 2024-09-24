@@ -1,5 +1,4 @@
-﻿using System;
-using Ui;
+﻿using Ui;
 using UnityEngine;
 using Zenject;
 
@@ -7,32 +6,32 @@ namespace Client
 {
     public class TimeManager : ITickable
     {
-        private SyncClockTime _time;
         private float _currentTime;
         private ClockModel _clockModel;
         private int _hours;
         private int _minutes;
         private int _seconds;
+        private ClockController _clockController;
 
-        public TimeManager(SyncClockTime time, ClockModel clockModel)
+        public TimeManager(ClockController clockController, ClockModel clockModel)
         {
-            _time = time;
+            _clockController = clockController;
             _clockModel = clockModel;
         }
         
         public void Tick()
         {
-            if(_time.ClockDigital == null) return;
+            if(_clockController.ClockDigital == null || _clockController.ClockAnalog == null) return;
             
-            _time.ClockDigital.Update(Time.deltaTime);
-            _clockModel.TimeToUi.Value = FormatTime(_time.ClockDigital.Time);
-            _time.ClockAnalog.Update(_hours, _minutes, _seconds);
-            _clockModel.Hours.Value = _time.ClockAnalog.HourAngle;
-            _clockModel.Minutes.Value = _time.ClockAnalog.MinuteAngle;
-            _clockModel.Seconds.Value = _time.ClockAnalog.SecondAngle;
+            _clockController.ClockDigital.Update(Time.deltaTime);
+            _clockModel.SetTimeString(FormatTime(_clockController.ClockDigital.Time));
+            _clockController.ClockAnalog.Update(_hours, _minutes, _seconds);
+            _clockModel.SetHoursAngle(_clockController.ClockAnalog.HourAngle);
+            _clockModel.SetMinutesAngle(_clockController.ClockAnalog.MinuteAngle);
+            _clockModel.SetSecondsAngle(_clockController.ClockAnalog.SecondAngle);
         }
         
-        private string FormatTime(float time)
+        public string FormatTime(float time)
         {
             _hours = Mathf.FloorToInt(time / 3600);
             _minutes = Mathf.FloorToInt((time % 3600) / 60);

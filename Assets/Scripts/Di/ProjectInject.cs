@@ -7,7 +7,10 @@ public class ProjectInject : MonoInstaller
     {
         BindSyncTime();
         BindTimeManager();
+        BindClockController();
     }
+
+    private void BindClockController() => Container.BindInterfacesAndSelfTo<ClockController>().AsSingle().NonLazy();
 
     private void BindTimeManager() => Container.BindInterfacesAndSelfTo<TimeManager>().AsSingle().NonLazy();
 

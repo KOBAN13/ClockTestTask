@@ -3,20 +3,26 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Client;
 using Cysharp.Threading.Tasks;
+using UniRx;
 using UnityEngine;
 using UnityEngine.Networking;
 using Zenject;
 
-public class SyncClockTime : IInitializable
+public class SyncClockTime : IInitializable, IDisposable
 {
-    public string ClockTime { get; private set; }
     private const string URL = "https://yandex.com/time/sync.json?geo=213";
-    public ClockDigital ClockDigital { get; private set; }
-    public ClockAnalog ClockAnalog { get; private set; }
-    
+    private IDisposable _disposable;
+    private ClockController _clockController;
+
+    public SyncClockTime(ClockController clockController)
+    {
+        _clockController = clockController;
+    }
+
     public void Initialize()
     {
         GetTimeFromAPI();
+        SubscribeTimer();
     }
 
     private async void GetTimeFromAPI()
@@ -33,7 +39,7 @@ public class SyncClockTime : IInitializable
             {
                 var jsonResponse = webRequest.downloadHandler.text;
                 SetClockDigital(jsonResponse);
-                SetClockAnalog(jsonResponse);
+                SetClockAnalog();
             }
         }
     }
@@ -50,11 +56,27 @@ public class SyncClockTime : IInitializable
     {
         var replace = GetFormattedStringTime(jsonResponse);
         var dateTime = DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(replace[1])).UtcDateTime.AddHours(3.0);
-        ClockDigital = new ClockDigital(dateTime.Second + dateTime.Minute * 60 + dateTime.Hour * 3600);
+        _clockController.SetDigitalClock(new ClockDigital(dateTime.Second + dateTime.Minute * 60 + dateTime.Hour * 3600));
+    }
+    
+    private void SetClockAnalog()
+    {
+        _clockController.SetAnalogClock(new ClockAnalog());
     }
 
-    private void SetClockAnalog(string jsonResponse)
+    private void SubscribeTimer()
     {
-        ClockAnalog = new ClockAnalog();
+        _disposable = Observable.Timer(TimeSpan.FromHours(1f), TimeSpan.FromHours(1f))
+            .Subscribe(_ => GetTimeFromAPI());
+    }
+
+    private void UnsubscribeTimer()
+    {
+        _disposable.Dispose();
+    }
+
+    public void Dispose()
+    {
+        UnsubscribeTimer();
     }
 }

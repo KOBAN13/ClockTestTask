@@ -16,6 +16,7 @@ namespace Di
         {
             Container.BindInterfacesAndSelfTo<ClockView>().FromInstance(_clockView).AsSingle().NonLazy();
             Container.BindInterfacesAndSelfTo<ClockModel>().AsSingle().NonLazy();
+            Container.BindInterfacesAndSelfTo<ClockPresenter>().AsSingle().NonLazy();
         }
     }
 }
