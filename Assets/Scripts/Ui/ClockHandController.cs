@@ -20,9 +20,13 @@ namespace Ui
         {
             if (!_isDragging) return;
             
-            var direction = eventData.position - new Vector2(Screen.width / 2, Screen.height / 2);
+            Vector3 mousePosition = eventData.position;
+            if (Camera.main != null) mousePosition = Camera.main.ScreenToWorldPoint(mousePosition);
+            
+            var center = transform.parent.position;
+            var direction = mousePosition - center;
+            
             var angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-                
             transform.localRotation = Quaternion.Euler(0, 0, angle);
         }
 

@@ -1,22 +1,29 @@
-﻿using Ui;
+﻿using System;
+using Clear;
+using Ui;
+using UniRx;
 using UnityEngine;
 using Zenject;
 
 namespace Client
 {
-    public class TimeManager : ITickable
+    public class TimeManager : IInitializable, IDisposable, ITickable
     {
         private float _currentTime;
         private ClockModel _clockModel;
+        private readonly Dispose _dispose;
         private int _hours;
         private int _minutes;
         private int _seconds;
         private ClockController _clockController;
+        private IDisposable _disposable;
 
-        public TimeManager(ClockController clockController, ClockModel clockModel)
+        public TimeManager(ClockController clockController, ClockModel clockModel, Dispose dispose)
         {
             _clockController = clockController;
             _clockModel = clockModel;
+            _dispose = dispose;
+            _dispose.Add(this);
         }
         
         public void Tick()
@@ -25,6 +32,22 @@ namespace Client
             
             _clockController.ClockDigital.Update(Time.deltaTime);
             _clockController.ClockAnalog.UpdateTime(Time.deltaTime);
+        }
+
+        public void Initialize()
+        {
+            _disposable = Observable
+                .Timer(TimeSpan.FromSeconds(0.9f), TimeSpan.FromSeconds(0.9f))
+                .Subscribe(_ => UpdateAngle());
+        }
+
+        public void Dispose()
+        {
+            _disposable?.Dispose();
+        }
+        
+        private void UpdateAngle()
+        {
             _clockModel.SetTimeDigitalString(FormatTime(_clockController.ClockDigital.Time));
             _clockController.ClockAnalog.UpdateAngle();
             _clockModel.SetHoursAngle(_clockController.ClockAnalog.HourAngle);
